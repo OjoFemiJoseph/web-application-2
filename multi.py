@@ -13,7 +13,7 @@ import os
 
 # Text/Title
 st.title("Interactive Web Application 2")
-
+#st.session_state['current_id'] = 0 
 #connect to db function
 def connectdb():   
     connection =pymysql.connect(
@@ -34,7 +34,7 @@ def save_data(text_area_1,text_area_2,box1,box2,image='',audio=''):
     current_time = str(time.strftime('%Y-%m-%d %H:%M:%S', current_time)).replace('-','').replace(':','').replace(' ','')
  
     #check if text area 1 and 2 are passed and also checking if one of audio or image was passed
-    if text_area_2 and text_area_1 and (audio or image):
+    if len(text_area_2)>1 and text_area_1 and (audio or image):
         #connect to db
         connection = connectdb()
         cur = connection.cursor()
@@ -113,8 +113,8 @@ if 'current_id2' not in st.session_state:
 #menu sidebar
 menu = st.sidebar.radio(
      'Select Menu:', ['Add','Show Raw','Explore','Explore Two'],index=0)
-connection = connectdb()
-cur = connection.cursor()
+# connection = connectdb()
+# cur = connection.cursor()
 
 #code for Add page
 if menu == "Add":
@@ -127,10 +127,10 @@ if menu == "Add":
         #select box i.e col A
         box1 = st.selectbox(
          'Col A',
-         ['Col A '])
+         ['Breakfast','Lunch','Dinner'])
         
         #text area
-        text_area_1 = st.text_area('Enter Audio Text')
+        text_area_1 = st.text_area('Enter Image Text')
         
         #image upload
         image_file = st.file_uploader("Upload Image File", type=["png","jpg"])
@@ -140,7 +140,7 @@ if menu == "Add":
     with col2:     
         box2 = st.selectbox(
          'Col B',
-         ['Col B'])
+         ['Major','Minor','Lieutanant','General','chief'])
         text_area_2 = st.text_area('Enter Audio Text',value=' ')
 
         audio_file = st.file_uploader("Upload Audio File", type=["mp3"])
@@ -161,9 +161,12 @@ if menu == "Add":
         
 #show raw page content
 if menu == "Show Raw":
-    multi_select_a = st.multiselect('Select A', ['col A','Apple'])
-    multi_select_b = st.multiselect('Select B', ['Col B','Apple'])
-  
+    multi_select_a = st.multiselect('Select A', ['Breakfast','Lunch','Dinner'])
+    multi_select_b = st.multiselect('Select B', ['Major','Minor','Lieutanant','General','chief'])
+    
+    connection = connectdb()
+    cur = connection.cursor()
+
   
     if multi_select_a and not multi_select_b:
         #add to format it because of sql, IN works with tuple shape. that is , the values has to be passed like this (a,b,c)
@@ -183,49 +186,61 @@ if menu == "Show Raw":
         df = pd.read_sql(query,connection)
     connection.close()
     if multi_select_a or multi_select_b:
-        st.write(df)
+        st.write(df[df.columns[:-1]])
         
 if menu == "Explore":
-    
+    image_filter_a = st.multiselect('Select A', ['Breakfast','Lunch','Dinner'])
+    image_filter_b = st.multiselect('Select B', ['Major','Minor','Lieutanant','General','chief'])
     #query to select ids of rows with image file type and sorted with the updated at column
-  
-    max_id = "select id from streamlith where file_type='image' ORDER BY updated_at DESC"
     
-    cur.execute(max_id)
-    
-    last_id = cur.fetchall()
+    connection = connectdb()
+    cur = connection.cursor()
 
-    #get the state, the current position
-    try:
-        position = st.session_state['current_id']
-        idx = last_id[position][0]
-    except:
-        st.write('starting from the begining')
-        st.session_state['current_id'] = 0
-        position = 0
-        idx = last_id[position][0]
-    
-    
-    #select row where the id == the current id in the state
-    query = f"select * from streamlith where id={idx}"
-    cur.execute(query)
-    details = cur.fetchall()
-    
-    #parse the file path to the correct format, removing ! that was sused to replace /
-    path = details[0][4].split("!")
-    file_path = '/'.join(path)
-    #st.write(file_path) 
-    #open with PIL
-    image = Image.open(file_path)
-    st.image(image,caption='hello world')
-    
-#     st.write(ext)
-#     st.write(details)
-#     multi_select_a = st.multiselect('Select A', ['Pen','Apple'])
-#     multi_select_b = st.multiselect('Select B', ['Pen','Apple'])
-    
-#     explore_text_area = st.text_area('Enter File Type', value="File Type")
-    
+    if image_filter_a and not image_filter_b:
+        #add to format it because of sql, IN works with tuple shape. that is , the values has to be passed like this (a,b,c)
+        in_values = str(image_filter_a).replace('[','(').replace(']',')')
+       
+        query = f"select * from streamlith where col_a in {in_values}"
+        
+        df = pd.read_sql(query,connection)
+        #st.write(df)
+        row_number = df.id.to_list()
+    elif image_filter_b and not image_filter_a:
+        in_values = str(image_filter_b).replace('[','(').replace(']',')')
+        query = f"select * from streamlith where col_b in {in_values}"
+        df = pd.read_sql(query,connection)
+        #st.write(df)
+        row_number = df.id.to_list()
+    elif image_filter_b and image_filter_a:
+        in_values_a = str(image_filter_a).replace('[','(').replace(']',')')
+        in_values_b = str(image_filter_b).replace('[','(').replace(']',')')
+        query = f"select * from streamlith where col_b in {in_values_b} and col_a in {in_values_a}"
+        df = pd.read_sql(query,connection)
+        #st.write(df)
+        row_number = df.id.to_list()
+  
+    if image_filter_a or image_filter_b:
+        temp = st.session_state['current_id']
+        #st.write(df.shape[0])
+        #st.write(temp)
+        if temp+1 == df.shape[0] or temp > df.shape[0]:
+            st.session_state['current_id'] = -1
+       
+        if temp < df.shape[0]:
+            one_row = df[temp:temp+1]
+            one_row = one_row[one_row.columns[:-1]]
+        else:
+            one_row = df[temp:]
+            one_row = one_row[one_row.columns[:-1]]
+        if one_row.shape[0]>0:
+            st.write(one_row)
+            idx = one_row.id.to_list()[0]
+
+            path = one_row['file_location'].to_list()[0].replace('!','/')
+            #st.write(path) 
+            #open with PIL
+            image = Image.open(path)
+            st.image(image.resize((300, 300)))
     coll1,coll2,coll3,coll4 = st.columns(4)
     
     with coll1:
@@ -237,20 +252,25 @@ if menu == "Explore":
     with coll4:
         pass
     if nxt:
-        st.session_state['current_id'] = position+1 
+        st.session_state['current_id'] += 1 
     if update:
-       #st.write(idx)
-        query = f'select * from streamlith where id ={idx}'
-       #st.write(query)
-        cur.execute(query)
-        details_cur = cur.fetchone()
-        query = f"UPDATE streamlith SET `title` ='temp' where id={details_cur[0]}"
-        #st.write(query)
-        cur.execute(query)
-        query = f"UPDATE streamlith SET `title` ='{details_cur[1]}' where id={details_cur[0]}"
-        #st.write(query)
-        cur.execute(query)
-        connection.commit()
+        current_time = time.localtime()
+        current_time = str(time.strftime('%Y-%m-%d %H:%M:%S', current_time)).replace('-','').replace(':','').replace(' ','')
+        try:
+            idx = row_number[st.session_state['current_id']-1]
+            #st.write(idx)
+            query = f"UPDATE streamlith SET `update_column` ='{current_time}' where id={idx}"
+            #st.write(query)
+            cur.execute(query)
+            connection.commit()
+            query = f"UPDATE streamlith SET `update_column` ='{one_row['title'].to_list()[0]}' where id={idx}"
+            #st.write(query)
+            cur.execute(query)
+            connection.commit()
+            st.session_state['current_id'] += 1 
+        except:
+            pass
+    connection.close()
         
 if menu =="Explore Two":
     #select file type
@@ -298,10 +318,10 @@ if menu =="Explore Two":
         st.write(query)
         cur.execute(query)
         details_cur = cur.fetchone()
-        query = f"UPDATE streamlith SET `title` ='temp' where id={details_cur[0]}"
+        query = f"UPDATE streamlith SET `update_column` ='temp' where id={details_cur[0]}"
         #st.write(query)
         cur.execute(query)
-        query = f"UPDATE streamlith SET `title` ='{details_cur[1]}' where id={details_cur[0]}"
+        query = f"UPDATE streamlith SET `update_column` ='{details_cur[1]}' where id={details_cur[0]}"
         #st.write(query)
         cur.execute(query)
         connection.commit()
