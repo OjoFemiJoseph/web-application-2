@@ -1,39 +1,15 @@
-DROP DATABASE IF EXISTS `upwork`;
-CREATE DATABASE `upwork`;
---
--- Database: `upwork`
---
+CREATE DATABASE IF NOT EXISTS upwork;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `streamlith`
---
+DROP TABLE IF EXISTS `streamlith`;
 
 CREATE TABLE `streamlith` (
-  `id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `col_a` varchar(255) NOT NULL,
-  `col_b` varchar(255) NOT NULL,
-  `file_location` varchar(255) NOT NULL,
-  `file_type` varchar(50) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `title` varchar(255) ,
+  `col_a` varchar(255) ,
+  `col_b` varchar(255) ,
+  `file_location` varchar(255) ,
+  `file_type` varchar(50) ,
+  `created_at` timestamp  DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `update_column` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Indexes for table `streamlith`
---
-ALTER TABLE `streamlith`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `streamlith`
---
-ALTER TABLE `streamlith`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  `update_column` varchar(100) 
+);
