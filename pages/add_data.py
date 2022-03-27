@@ -19,7 +19,7 @@ class add_data():
         current_time = str(time.strftime('%Y-%m-%d %H:%M:%S', current_time)).replace('-','').replace(':','').replace(' ','')
     
         #check if text area 1 and 2 are passed and also checking if one of audio or image was passed
-        if len(text_area_2)>1 and text_area_1 and (audio_file or image_file):
+        if len(text_area_2)>1 and text_area_1 or (audio_file or image_file):
             #connect to db
             try:
                 connection = Connect_Db.connectdb()
@@ -58,6 +58,7 @@ class add_data():
                         
                         #pass the variables to the query
                         query = f"INSERT INTO streamlith(`title`,`col_a`,`col_b`,`file_location`,`file_type`) VALUES('{text_area_1}','{box1}','{box2}','{location}','{file_type}')"
+#                       Needs another column for text_area_2
                         
                         #execute the query
                         cur.execute(query)
