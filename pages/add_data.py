@@ -57,7 +57,7 @@ class add_data():
                         location = path.replace('\\',"!")
                         
                         #pass the variables to the query
-                        query = f"INSERT INTO streamlith(`title`,`col_a`,`col_b`,`file_location`,`file_type`) VALUES('{text_area_1}','{box1}','{box2}','{location}','{file_type}')"
+                        query = f"INSERT INTO streamlith(`title`,`title2`,`col_a`,`col_b`,`file_location`,`file_type`) VALUES('{text_area_1}','{text_area_2}','{box1}','{box2}','{location}','{file_type}')"
 #                       Needs another column for text_area_2
                         
                         #execute the query
@@ -79,7 +79,7 @@ class add_data():
                                 
                         location = path.replace("\\","!")
                         #st.write('INSERT INTO streamlith VALUES({})"'.format([box2,text_area_1,text_area_2,location,file_type)
-                        query = f"INSERT INTO streamlith(`title`,`col_a`,`col_b`,`file_location`,`file_type`) VALUES('{text_area_2}','{box1}','{box2}','{location}','{file_type}')"
+                        query = f"INSERT INTO streamlith(`title`,`title2`,`col_a`,`col_b`,`file_location`,`file_type`) VALUES('{text_area_1}','{text_area_2}','{box1}','{box2}','{location}','{file_type}')"
                         cur.execute(query)
                         connection.commit()
                         st.write('Data has been saved')

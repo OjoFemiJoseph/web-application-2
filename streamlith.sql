@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS `streamlith`;
 CREATE TABLE `streamlith` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `title` varchar(255) ,
+  `title2` varchar(255) ,
   `col_a` varchar(255) ,
   `col_b` varchar(255) ,
   `file_location` varchar(255) ,
